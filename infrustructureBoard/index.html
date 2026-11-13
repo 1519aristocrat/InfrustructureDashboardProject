@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infrastructure Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div>
+
+        <header>
+            <div>
+                <h1>Infrastructure Monitor</h1>
+            </div>
+
+            <div id="connection-badge">
+                <span id="connection-text">Backend Connected</span>
+            </div>
+        </header>
+
+        <main class="space-y-6">
+            <!-- hardware metrics section -->
+            <section class="grid">
+                <!-- CPU Section -->
+                <div>
+                    <div>CPU Usage</div>
+                    <span id="cpu-val">0%</span>
+                    <span id="cpu-cores"> cores </span>
+                    
+                </div>
+                <div id="cpu-bar"></div>
+                <!-- RAM section -->
+                <div>
+                    <div>RAM Usage</div>
+                    <span id="ram-val">0%</span>
+                    <span id="ram-total"> GB </span>
+                </div>
+                <div id="ram-bar"></div>
+
+                <!-- Disk Section -->
+                <div>
+                    <div>Disk Usage</div>
+                    <span id="disk-val">0%</span>
+                    <span id="disk-total"> GB </span>
+                </div>
+                <div id="disk-bar"></div>
+
+            </section>
+            
+            <!-- Live Metrics chart -->
+            <section>
+                <div><h2>Resource Utilization Chart</h2></div>
+                <div>
+                <canvas id="live-metrics-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Network endpoints -->
+             <section>
+                <div>
+                    <h2>Network Endpoints Monitor</h2>
+                    <span id="network-uptime">Uptime: --%</span>
+                </div>
+                <div>
+                    <table id="network-endpoints-table">
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Status</th>
+                                <th>HTTP Code</th>
+                                <th>Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="network-endpoints-body">
+                            <!-- Network endpoints injected here -->
+
+                        </tbody>
+                    </table>
+             </section>
+
+             <!-- Javascript engine to connect to backend -->
+              <script>
+                const API_URL = "http://127.0.0.1:8000/api/metrics";
+                const MAX_DATA_POINTS = 15; // Maximum number of data points to display on the chart
+
+                //1. Initialize chart.js
+                const ctx = document.getElementById('live-metrics-chart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'CPU Usage (%)',
+                                data: [],
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                fill: false
+                            },
+                            {
+                                label: 'RAM Usage (%)',
+                                data: [],
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                fill: false
+                            },
+                            {
+                                label: 'Disk Usage (%)',
+                                data: [],
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+
+                // DOM Elements
+                const cpuVal = document.getElementById('cpu-val');
+                const cpuBar = document.getElementById('cpu-bar');
+                const cpuCores = document.getElementById('cpu-cores');
+                const ramVal = document.getElementById('ram-val');
+                const ramBar = document.getElementById('ram-bar');
+                const ramTotal = document.getElementById('ram-total');
+                const diskVal = document.getElementById('disk-val');
+                const diskBar = document.getElementById('disk-bar');
+                const diskTotal = document.getElementById('disk-total');
+                const networkUptime = document.getElementById('network-uptime');
+                const networkEndpointsBody = document.getElementById('network-endpoints-body');
+                const connectionText = document.getElementById('connection-text');
+                const connectionBadge = document.getElementById('connection-badge');
+
+                // Hardware updates
+            async function fetchHardware() {
+                try {
+                const response = await fetch(
+                "http://127.0.0.1:8000/api/metrics/hardware"
+                );
+
+                if (!response.ok) {
+                throw new Error("Hardware request failed");
+                }
+
+            const hardware = await response.json();
+                updateHardware(hardware);
+
+            } catch (error) {
+                console.error("Hardware error:", error);
+            }
+    }
+
+    function updateHardware(hardware) {
+
+    // Get values from the FastAPI response
+    const cpu = hardware.cpu.cpu_usage;
+    const ram = hardware.ram.usage_percent;
+    const disk = hardware.disk.disk_usage;
+
+    // Update displayed percentages
+    cpuVal.textContent = cpu + "%";
+    ramVal.textContent = ram + "%";
+    diskVal.textContent = disk + "%";
+
+    // Update additional information
+    cpuCores.textContent = hardware.cpu.logical_cores + " cores";
+    ramTotal.textContent = hardware.ram.total_gb + " GB total";
+    diskTotal.textContent = hardware.disk.total_gb + " GB total";
+
+    // Update progress bars
+    cpuBar.style.width = cpu + "%";
+    ramBar.style.width = ram + "%";
+    diskBar.style.width = disk + "%";
+
+    // Update connection indicator
+    connectionText.textContent = "Backend Connected";
+
+    // Add data to the chart
+    const currentTime = new Date().toLocaleTimeString();
+
+    chart.data.labels.push(currentTime);
+
+    chart.data.datasets[0].data.push(cpu);
+    chart.data.datasets[1].data.push(ram);
+    chart.data.datasets[2].data.push(disk);
+
+    // Remove oldest readings when the limit is reached
+    if (chart.data.labels.length > MAX_DATA_POINTS) {
+        chart.data.labels.shift();
+
+        chart.data.datasets.forEach(dataset => {
+            dataset.data.shift();
+        });
+    }
+
+    chart.update();
+}
+
+    // Network updates
+    async function fetchNetwork() {
+        try {
+        const response = await fetch(
+        "http://127.0.0.1:8000/api/metrics/network"
+        );
+
+        if (!response.ok) {
+            throw new Error("Network request failed");
+        }
+
+        const network = await response.json();
+            updateNetwork(network);
+
+        } catch (error) {
+        console.error("Network error:", error);
+    }
+}
+
+
+function updateNetwork(network) {
+
+    // Display current percentage of online endpoints
+    networkUptime.textContent =
+        "Online: " + network.summary.uptime + "%";
+
+    // Clear the previous table rows
+    networkEndpointsBody.innerHTML = "";
+
+    // Loop through every monitored website
+    network.endpoints.forEach(endpoint => {
+
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = endpoint.name;
+        const statusCell = document.createElement("td");
+            statusCell.textContent = endpoint.status;
+            statusCell.className =
+            "status-" + endpoint.status.toLowerCase();
+        const codeCell = document.createElement("td");
+            codeCell.textContent = endpoint.code;
+
+        const latencyCell = document.createElement("td");
+
+        // Supports your original "latancy" spelling too
+        const latency = endpoint.latency ?? endpoint.latancy;
+
+        latencyCell.textContent =
+            latency == null ? "N/A" : latency + " ms";
+
+        row.appendChild(nameCell);
+        row.appendChild(statusCell);
+        row.appendChild(codeCell);
+        row.appendChild(latencyCell);
+
+        networkEndpointsBody.appendChild(row);
+    });
+}
+
+
+// Initial updates when page loads
+fetchHardware();
+fetchNetwork();
+
+// Update hardware every 2 seconds
+setInterval(fetchHardware, 2000);
+
+// Update network every 10 seconds
+setInterval(fetchNetwork, 10000);
+        </script>
+    </main>
+</div>
+    
+</body>
+</html>

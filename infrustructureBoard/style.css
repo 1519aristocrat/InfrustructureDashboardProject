@@ -1,0 +1,227 @@
+
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Tahoma, Verdana, Arial, sans-serif;
+    font-size: 13px;
+    color: #222;
+    background: #d6d9df;
+}
+
+/* Main application window */
+body > div {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #ece9d8;
+    border: 1px solid #555;
+    box-shadow:
+        2px 2px 0 #fff,
+        5px 5px 0 #999;
+}
+
+
+   /* HEADER*/
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    color: white;
+    background: linear-gradient(
+        to bottom,
+        #3779d6 0%,
+        #1354ad 50%,
+        #06418e 100%
+    );
+    border-bottom: 2px solid #00316c;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px #002c66;
+}
+
+/* Connection indicator */
+#connection-badge {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    background: #168327;
+    border: 1px solid #fff;
+    box-shadow: inset 1px 1px 2px #aaa;
+}
+
+/* MAIN CONTENT*/
+
+main {
+    padding: 16px;
+}
+
+section {
+    margin-bottom: 18px;
+    padding: 12px;
+    background: #f7f7f2;
+    border: 1px solid #888;
+    box-shadow:
+        inset 1px 1px #fff,
+        inset -1px -1px #c3c3c3;
+}
+
+h2 {
+    margin: 0 0 12px;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(
+        to bottom,
+        #447bc0,
+        #1e4f90
+    );
+    border: 1px solid #173b6a;
+}
+
+/*HARDWARE METRIC CARDS*/
+
+section.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: #ece9d8;
+}
+
+/* Each metric information panel */
+section.grid > div:nth-child(odd) {
+    min-height: 105px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #8a8a8a;
+    box-shadow: inset 2px 2px #e5e5e5;
+}
+
+/* Hide standalone bar containers until
+   they are placed inside metric cards */
+#cpu-bar,
+#ram-bar,
+#disk-bar {
+    display: none;
+}
+
+/* Metric headings */
+section.grid > div:nth-child(odd) > div:first-child {
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #184d91;
+    border-bottom: 1px solid #aaa;
+}
+
+/* Big numerical percentages */
+#cpu-val,
+#ram-val,
+#disk-val {
+    display: block;
+    margin-bottom: 8px;
+    font-family: "Courier New", monospace;
+    font-size: 29px;
+    font-weight: bold;
+    color: #164b85;
+}
+
+/* Supporting details */
+#cpu-cores,
+#ram-total,
+#disk-total {
+    color: #555;
+    font-size: 12px;
+}
+
+/* ======================================
+   CHART
+====================================== */
+
+#live-metrics-chart {
+    background: #fff;
+    border: 1px solid #999;
+    padding: 10px;
+    max-height: 350px;
+}
+
+/* ======================================
+   NETWORK MONITOR
+====================================== */
+
+#network-uptime {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+    color: #006000;
+    background: #e7f5e7;
+    border: 1px solid #7b9e7b;
+}
+
+#network-endpoints-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #888;
+    font-size: 12px;
+}
+
+#network-endpoints-table th {
+    padding: 9px;
+    text-align: left;
+    color: #222;
+    background: linear-gradient(
+        to bottom,
+        #fff,
+        #c9ced9
+    );
+    border: 1px solid #888;
+}
+
+#network-endpoints-table td {
+    padding: 9px;
+    border: 1px solid #c5c5c5;
+}
+
+#network-endpoints-table tbody tr:nth-child(even) {
+    background: #eef2f8;
+}
+
+#network-endpoints-table tbody tr:hover {
+    background: #c8ddfa;
+}
+
+/* ======================================
+   RESPONSIVE
+====================================== */
+
+@media (max-width: 700px) {
+    body {
+        padding: 8px;
+    }
+
+    section.grid {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    #network-endpoints-table {
+        font-size: 11px;
+    }
+}
